@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Upload - Phishing Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <a href="/admin">Home</a>
+        <a href="/upload">Bulk Analysis</a>
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <div class="container" style="max-width: 800px; margin-top: 100px;">
+        <h2>BULK DATA INGESTION</h2>
+        <p>Upload CSV for Mass Analysis</p>
+
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".csv" required style="padding: 10px; color: #fff; background: rgba(0,0,0,0.2); border-radius: 10px;">
+            <button type="submit">INITIATE BATCH PROCESS</button>
+        </form>
+
+        {% if results %}
+        <h3>BATCH RESULTS</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>URL</th>
+                    <th>STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in results %}
+                <tr>
+                    <td style="word-break: break-all;">{{ res.url }}</td>
+                    <td class="{{ 'text-danger' if res.prediction == 'Phishing' else 'text-success' }}" style="font-weight: bold;">{{ res.prediction }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        
+        <a href="/admin">Return to Command Center</a>
+    </div>
+</body>
+</html>

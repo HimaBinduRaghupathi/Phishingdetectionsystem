@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Phishing Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='static/cyber_shield.svg') }}" class="cyber-logo" alt="Cyber Shield">
+        <h2>SECURE ACCESS PORTAL</h2>
+        <form method="POST" action="/login">
+            <input type="text" name="username" placeholder="AGENT ID" required>
+            <input type="password" name="password" placeholder="ACCESS CODE" required>
+            <button type="submit">AUTHENTICATE</button>
+        </form>
+        <a href="/register">REQUEST NEW IDENTITY</a>
+    </div>
+</body>
+</html>

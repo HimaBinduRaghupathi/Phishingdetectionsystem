@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Advanced Terminal Loader -->
+    <div id="loading-overlay">
+        <div class="terminal-loader" id="terminal-content">
+            <div class="terminal-line">> INITIALIZING SCANNING PROTOCOL...</div>
+        </div>
+        <div class="loader-bar">
+            <div class="loader-progress" id="progress-bar"></div>
+        </div>
+    </div>
+
+    <nav>
+        <a href="/admin">Home</a>
+        <a href="/upload">Bulk Analysis</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container" style="max-width: 900px; margin-top: 100px;">
+        <h2>COMMAND CENTER</h2>
+        <p>System Overview & Global Threat Analysis</p>
+
+        <div style="display: flex; justify-content: space-around; margin: 40px 0; gap: 20px;">
+            <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; width: 45%; border: 1px solid rgba(255,255,255,0.1);">
+                <h3 style="margin: 0; font-size: 2.5em; color: #00f260; text-shadow: 0 0 15px rgba(0,242,96,0.3);">{{ total_users }}</h3>
+                <span style="color: #a0aab5; font-size: 0.8em; letter-spacing: 2px;">ACTIVE AGENTS</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; width: 45%; border: 1px solid rgba(255,255,255,0.1);">
+                <h3 style="margin: 0; font-size: 2.5em; color: #4facfe; text-shadow: 0 0 15px rgba(79,172,254,0.3);">{{ total_logs }}</h3>
+                <span style="color: #a0aab5; font-size: 0.8em; letter-spacing: 2px;">TOTAL SCANS</span>
+            </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin: 30px auto; max-width: 400px;">
+            <canvas id="threatChart"></canvas>
+        </div>
+
+        <h3>QUICK THREAT SCAN</h3>
+        <form id="scanForm" method="POST" action="/admin" onsubmit="startAdminScan(event)">
+            <input type="text" name="url" placeholder="Enter Target URL for Immediate Analysis" required>
+            <button type="submit">EXECUTE ANALYSIS</button>
+        </form>
+
+        {% if result %}
+        <div class="result {{ result }}">
+            VERDICT: {{ result }}
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 40px;">
+             <a href="/upload" class="button" style="background: linear-gradient(90deg, #4facfe, #00f260); color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(79,172,254,0.4);">INITIATE MASS DATA INGESTION</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('threatChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Phishing', 'Legitimate'],
+                datasets: [{
+                    data: [{{ phishing_count }}, {{ legitimate_count }}],
+                    backgroundColor: ['#ff3b30', '#34c759'],
+                    borderColor: ['rgba(255, 59, 48, 0.5)', 'rgba(52, 199, 89, 0.5)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: { color: '#c9d1d9' }
+                    }
+                }
+            }
+        });
+
+        function startAdminScan(event) {
+            event.preventDefault();
+            const overlay = document.getElementById('loading-overlay');
+            const terminal = document.getElementById('terminal-content');
+            const bar = document.getElementById('progress-bar');
+            overlay.style.display = 'flex';
+
+            const steps = [
+                "> AUTHENTICATING ADMIN CREDENTIALS...",
+                "> CONNECTING TO THREAT INTELLIGENCE FEED...",
+                "> BYPASSING CACHE LAYER...",
+                "> PERFORMING DEEP PACKET INSPECTION...",
+                "> RUNNING HEURISTIC ANALYSIS...",
+                "> CROSS-REFERENCING BLACKLISTS...",
+                "> ANALYZING DOMAIN REPUTATION...",
+                "> FINALIZING VERDICT..."
+            ];
+
+            let stepIndex = 0;
+            const totalTime = 4000; 
+            const intervalTime = totalTime / steps.length;
+
+            terminal.innerHTML = '<div class="terminal-line">> INITIALIZING SYSTEM...</div>';
+
+            const interval = setInterval(() => {
+                if (stepIndex < steps.length) {
+                    const div = document.createElement('div');
+                    div.className = 'terminal-line';
+                    div.innerText = steps[stepIndex];
+                    terminal.appendChild(div);
+                    
+                    // Update progress bar
+                    const percent = ((stepIndex + 1) / steps.length) * 100;
+                    bar.style.width = percent + '%';
+                    
+                    stepIndex++;
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('scanForm').submit();
+                }
+            }, intervalTime);
+        }
+    </script>
+</body>
+</html>

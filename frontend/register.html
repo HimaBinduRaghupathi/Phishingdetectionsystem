@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='static/cyber_shield.svg') }}" class="cyber-logo" alt="Cyber Shield">
+        <h2>NEW AGENT REGISTRATION</h2>
+        <form method="POST" action="/register">
+            <input type="text" name="username" placeholder="ASSIGN AGENT ID" required>
+            <input type="password" name="password" placeholder="SET ACCESS CODE" required>
+            <select name="role">
+                <option value="user">FIELD AGENT (User)</option>
+                <option value="admin">COMMANDER (Admin)</option>
+            </select>
+            <button type="submit">INITIALIZE CREDENTIALS</button>
+        </form>
+        <a href="/">RETURN TO LOGIN</a>
+    </div>
+</body>
+</html>

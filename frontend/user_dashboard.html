@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Phishing Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <a href="/dashboard">Home</a>
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <div class="container" style="margin-top: 80px;">
+        <!-- Advanced Terminal Loader -->
+        <div id="loading-overlay">
+            <div class="terminal-loader" id="terminal-content">
+                <div class="terminal-line">> INITIALIZING SCANNING PROTOCOL...</div>
+            </div>
+            <div class="loader-bar">
+                <div class="loader-progress" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <img src="{{ url_for('static', filename='static/cyber_shield.svg') }}" class="cyber-logo" alt="Cyber Shield">
+        <h2>THREAT INTELLIGENCE DASHBOARD</h2>
+        <p>Analyze suspicious URLs using our advanced ML engine.</p>
+
+        <form method="POST" action="/dashboard" onsubmit="startScan()">
+            <input type="text" name="url" placeholder="Enter Target URL (e.g., http://example.com)" required>
+            <button type="submit">INITIATE DEEP SCAN</button>
+        </form>
+
+        {% if result %}
+        <div class="result {{ result }}">
+            STATUS: {{ result }}
+            {% if probability %}
+            <br>
+            <span style="font-size: 0.7em; opacity: 0.8; letter-spacing: 1px;">CONFIDENCE SCORE: {{ probability }}%</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if recent_logs %}
+        <h3 style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">RECENT OPERATIONS</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>TARGET</th>
+                    <th>VERDICT</th>
+                    <th>TIMESTAMP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs %}
+                <tr>
+                    <td style="word-break: break-all;">{{ log[0] }}</td>
+                    <td class="{{ 'text-danger' if log[1] == 'Phishing' else 'text-success' }}" style="font-weight: bold;">{{ log[1] }}</td>
+                    <td>{{ log[2].split('.')[0] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <script>
+        function startScan() {
+            const overlay = document.getElementById('loading-overlay');
+            const terminal = document.getElementById('terminal-content');
+            const bar = document.getElementById('progress-bar');
+            overlay.style.display = 'flex';
+
+            const steps = [
+                "> RESOLVING HOST...",
+                "> CHECKING SSL CERTIFICATES...",
+                "> ANALYZING DOM STRUCTURE...",
+                "> EXTRACTING FEATURES...",
+                "> RUNNING ML PREDICTION MODEL...",
+                "> FINALIZING VERDICT..."
+            ];
+
+            let stepIndex = 0;
+            const totalTime = 2000; // Total animation time (approx)
+            const intervalTime = totalTime / steps.length;
+
+            const interval = setInterval(() => {
+                if (stepIndex < steps.length) {
+                    const div = document.createElement('div');
+                    div.className = 'terminal-line';
+                    div.innerText = steps[stepIndex];
+                    terminal.appendChild(div);
+                    
+                    // Update progress bar
+                    const percent = ((stepIndex + 1) / steps.length) * 100;
+                    bar.style.width = percent + '%';
+
+                    stepIndex++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, intervalTime);
+        }
+    </script>
+</body>
+</html>
