@@ -8,6 +8,11 @@ from feature_extraction import extract_features
 # Load dataset
 data = pd.read_csv("dataset/processed_phishing_dataset.csv")
 
+# drop rows where either URL or target is missing
+initial_len = len(data)
+data = data.dropna(subset=["url", "target"])
+print(f"Dropped {initial_len - len(data)} rows with missing url/target")
+
 # Extract features
 feature_list = []
 

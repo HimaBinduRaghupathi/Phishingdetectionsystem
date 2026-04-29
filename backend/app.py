@@ -76,6 +76,22 @@ def init_db():
 
 init_db()
 
+
+# classification helper (can be imported from other modules/tests)
+def classify_url(url):
+    if model is None:
+        return "Error: Model not loaded", None
+    features = extract_features(url)
+    if features.get('homograph', 0) or features.get('digit_in_domain', 0):
+        return "Phishing (rule match)", None
+    features_df = pd.DataFrame([features])
+    pred = model.predict(features_df)[0]
+    proba = model.predict_proba(features_df)[0]
+    prediction = "Phishing" if pred == 1 else "Legitimate"
+    # pred may be numpy.float64; cast to int for indexing
+    probability = round(proba[int(pred)] * 100, 2)
+    return prediction, probability
+
 # ---------------- HOME ----------------
 
 @app.route("/")
@@ -146,32 +162,39 @@ def dashboard():
     if "user_id" not in session:
         return redirect("/")
 
+    # helper function for classifying a single URL (model + simple rule)
+    def classify_url(url):
+        if model is None:
+            return "Error: Model not loaded", None
+        features = extract_features(url)
+        # apply rule based on suspicious patterns before ML prediction
+        if features.get('homograph', 0) or features.get('digit_in_domain', 0):
+            return "Phishing (rule match)", None
+        # otherwise use ML
+        features_df = pd.DataFrame([features])
+        pred = model.predict(features_df)[0]
+        proba = model.predict_proba(features_df)[0]
+        prediction = "Phishing" if pred == 1 else "Legitimate"
+        probability = round(proba[pred] * 100, 2)
+        return prediction, probability
+
     prediction = None
     probability = None
     if request.method == "POST":
         # Handle form submission from user_dashboard.html
         url = request.form.get("url")
         if url:
-             if model is None:
-                 prediction = "Error: Model not loaded"
-             else:
-                 features = extract_features(url)
-                 features_df = pd.DataFrame([features])
-                 pred = model.predict(features_df)[0]
-                 proba = model.predict_proba(features_df)[0]
-                 
-                 prediction = "Phishing" if pred == 1 else "Legitimate"
-                 probability = round(proba[pred] * 100, 2)
+            prediction, probability = classify_url(url)
 
-             # Log to DB
-             conn = get_db_connection()
-             cursor = conn.cursor()
-             cursor.execute(
+            # Log to DB
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
                 "INSERT INTO logs (user_id, url, prediction, timestamp) VALUES (?, ?, ?, ?)",
                 (session["user_id"], url, prediction, datetime.now())
-             )
-             conn.commit()
-             conn.close()
+            )
+            conn.commit()
+            conn.close()
 
     # Fetch recent logs
     conn = get_db_connection()
@@ -223,13 +246,8 @@ def upload():
                 for index, row in df.iterrows():
                     url = row['url']
                     try:
-                        if model is None:
-                            prediction = "Error: Model not loaded"
-                        else:
-                            features = extract_features(url)
-                            features_df = pd.DataFrame([features])
-                            pred = model.predict(features_df)[0]
-                            prediction = "Phishing" if pred == 1 else "Legitimate"
+                        # reuse classification helper for each row
+                        prediction, _ = classify_url(url)
                         
                         processed_results.append({'url': url, 'prediction': prediction})
 
@@ -267,21 +285,14 @@ def admin():
     if request.method == "POST":
         url = request.form.get("url")
         if url:
-             if model is None:
-                 prediction = "Error: Model not loaded"
-             else:
-                 features = extract_features(url)
-                 features_df = pd.DataFrame([features])
-                 pred = model.predict(features_df)[0]
-                 prediction = "Phishing" if pred == 1 else "Legitimate"
+            prediction, _ = classify_url(url)
 
-             # Log to DB
-             cursor.execute(
+            # Log to DB
+            cursor.execute(
                 "INSERT INTO logs (user_id, url, prediction, timestamp) VALUES (?, ?, ?, ?)",
                 (session["user_id"], url, prediction, datetime.now())
-             )
-             conn.commit()
-
+            )
+            conn.commit()
     cursor.execute("SELECT COUNT(*) FROM users")
     total_users = cursor.fetchone()[0]
 

@@ -1,0 +1,14 @@
+# Python
+env/
+.venv/
+__pycache__/
+*.pyc
+
+# Data and models
+model/phishing_model.pkl
+dataset/
+backend/database.db
+
+# OS files
+.DS_Store
+Thumbs.db
