@@ -17,16 +17,20 @@ import pandas as pd
 from datetime import datetime
 import joblib
 
-# Add parent directory to path to import from model folder
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Add project root to path for imports
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
 from model.feature_extraction import extract_features
 
 app = Flask(__name__, template_folder="../frontend", static_folder="../frontend", static_url_path="")
 app.secret_key = "secretkey"
 
-# Load Model
+
+# Load Model (robust for Vercel)
 try:
-    model_path = os.path.join(os.path.dirname(__file__), '../model/phishing_model.pkl')
+    # Always resolve from project root
+    model_path = os.path.join(project_root, 'model', 'phishing_model.pkl')
     print(f"Attempting to load model from: {model_path}")
     print(f"Model file exists: {os.path.exists(model_path)}")
     model = joblib.load(model_path)
