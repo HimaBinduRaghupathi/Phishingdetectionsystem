@@ -1,30 +1,29 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 import os
 import sys
-
-# FIX: Set temporary directory to D: drive due to C: drive being full
-temp_dir = r"D:\PhishingTemp"
-if not os.path.exists(temp_dir):
-    try:
-        os.makedirs(temp_dir)
-    except:
-        pass
-os.environ['TEMP'] = temp_dir
-os.environ['TMP'] = temp_dir
-
 import sqlite3
 import pandas as pd
 from datetime import datetime
 import joblib
-
 
 # Add project root to path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(project_root)
 from model.feature_extraction import extract_features
 
-app = Flask(__name__, template_folder="../frontend", static_folder="../frontend", static_url_path="")
+frontend_path = os.path.join(project_root, 'frontend')
+app = Flask(__name__, template_folder=frontend_path, static_folder=frontend_path, static_url_path='')
 app.secret_key = "secretkey"
+
+# Database path for serverless environments
+if os.name == 'nt':
+    database_dir = os.path.dirname(__file__)
+else:
+    database_dir = os.environ.get('DATABASE_DIR', '/tmp')
+os.makedirs(database_dir, exist_ok=True)
+
+# Use a file in /tmp on Vercel, which is writable in serverless functions
+DATABASE_PATH = os.path.join(database_dir, 'database.db')
 
 
 # Load Model (robust for Vercel)
@@ -44,8 +43,7 @@ except Exception as e:
 # ---------------- DATABASE CREATE ----------------
 
 def get_db_connection():
-    db_path = os.path.join(os.path.dirname(__file__), "database.db")
-    conn = sqlite3.connect(db_path, timeout=10.0)
+    conn = sqlite3.connect(DATABASE_PATH, timeout=10.0)
     conn.execute("PRAGMA journal_mode=WAL")
     return conn
 
